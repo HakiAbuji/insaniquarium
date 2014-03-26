@@ -15,6 +15,10 @@ import org.andengine.opengl.texture.atlas.bitmap.BitmapTextureAtlasTextureRegion
 import org.andengine.opengl.texture.region.TiledTextureRegion;
 import org.andengine.ui.activity.SimpleBaseGameActivity;
 
+import com.makersf.andengine.extension.collisions.entity.sprite.PixelPerfectAnimatedSprite;
+import com.makersf.andengine.extension.collisions.opengl.texture.region.PixelPerfectTextureRegionFactory;
+import com.makersf.andengine.extension.collisions.opengl.texture.region.PixelPerfectTiledTextureRegion;
+
 import android.graphics.Point;
 import android.os.SystemClock;
 import android.util.Log;
@@ -47,8 +51,8 @@ public class Main extends SimpleBaseGameActivity {
 	private TiledTextureRegion mFaceTextureRegion1;
 	private AnimatedSprite animatedSprite1;
 	private Scene scene;
-	private AnimatedSprite animatedSprite2;
-	private TiledTextureRegion mFaceTextureRegion2;
+	private PixelPerfectTiledTextureRegion mFaceTextureRegion2;
+	private PixelPerfectAnimatedSprite animatedSprite2;
 
 	// ===========================================================
 	// Constructors
@@ -77,14 +81,15 @@ public class Main extends SimpleBaseGameActivity {
 	@Override
 	public void onCreateResources() {
 		BitmapTextureAtlasTextureRegionFactory.setAssetBasePath("gfx/");
-
-		this.mBitmapTextureAtlas = new BitmapTextureAtlas(this.getTextureManager(), 400, 400, TextureOptions.BILINEAR);
+		PixelPerfectTextureRegionFactory.setAssetBasePath("gfx/");
+		
+		this.mBitmapTextureAtlas = new BitmapTextureAtlas(this.getTextureManager(), 480, 800, TextureOptions.BILINEAR);
 		this.mFaceTextureRegion = BitmapTextureAtlasTextureRegionFactory.createTiledFromAsset(this.mBitmapTextureAtlas, this,
 				"face_box_tiled.png", 0, 0, 2, 1);
 		this.mFaceTextureRegion1 = BitmapTextureAtlasTextureRegionFactory.createTiledFromAsset(this.mBitmapTextureAtlas, this,
 				"banana_tiled.png", 0, 100, 4, 2);
-		this.mFaceTextureRegion2 = BitmapTextureAtlasTextureRegionFactory.createTiledFromAsset(this.mBitmapTextureAtlas, this,
-				"snapdragon_tiled.png", 0, 200, 4, 3);
+//		this.mFaceTextureRegion2 = BitmapTextureAtlasTextureRegionFactory.createTiledFromAsset(this.mBitmapTextureAtlas, this, "coin_gold.png", 0, 200, 10, 1);
+		this.mFaceTextureRegion2 = PixelPerfectTextureRegionFactory.createTiledFromAsset(this.mBitmapTextureAtlas, this.getAssets(), "coin_gold.png", 0, 200, 10, 1, 0);
 		this.mBitmapTextureAtlas.load();
 	}
 
@@ -100,15 +105,14 @@ public class Main extends SimpleBaseGameActivity {
 
 		/* Create the animated sprite and add it to the scene. */
 		animatedSprite = new AnimatedSprite(centerX, centerY, this.mFaceTextureRegion, this.getVertexBufferObjectManager());
-		animatedSprite1 = new AnimatedSprite(centerX, centerY, this.mFaceTextureRegion1, this.getVertexBufferObjectManager());
-		animatedSprite2 = new AnimatedSprite(centerX, centerY, this.mFaceTextureRegion2, this.getVertexBufferObjectManager());
-
+//		animatedSprite1 = new AnimatedSprite(centerX, centerY, this.mFaceTextureRegion1, this.getVertexBufferObjectManager());
+//		animatedSprite2 = new AnimatedSprite(150, 200, this.mFaceTextureRegion2, this.getVertexBufferObjectManager());
+		animatedSprite1 = new PixelPerfectAnimatedSprite(centerX, centerY, this.mFaceTextureRegion2, this.getVertexBufferObjectManager());
+		animatedSprite2 = new PixelPerfectAnimatedSprite(150, 200, this.mFaceTextureRegion2, this.getVertexBufferObjectManager());
 		animatedSprite2.animate(100);
-
 		animatedSprite2.setPosition(100, 50);
-		animatedSprite.animate(new long[] { 100, 100 }, 0, 1, true);
 		animatedSprite1.animate(100);
-		scene.attachChild(animatedSprite);
+		scene.attachChild(animatedSprite1);
 		scene.attachChild(animatedSprite2);
 		scene.setOnSceneTouchListener(new IOnSceneTouchListener() {
 			@Override
@@ -130,11 +134,11 @@ public class Main extends SimpleBaseGameActivity {
 		if (mToggleBox) {
 			animatedSprite2.setTiledTextureRegion(mFaceTextureRegion2);
 			animatedSprite2.animate(100);
-			col = animatedSprite.collidesWith(animatedSprite2);
+			col = animatedSprite2.collidesWith(animatedSprite1);
 		} else {
 			animatedSprite2.setTiledTextureRegion(mFaceTextureRegion1);
 			animatedSprite2.animate(100);
-			col = animatedSprite1.collidesWith(animatedSprite2);
+			col = animatedSprite2.collidesWith(animatedSprite1);
 		}
 		if (col) {
 			Log.e("hao", "cham roi ne " + SystemClock.elapsedRealtime());
