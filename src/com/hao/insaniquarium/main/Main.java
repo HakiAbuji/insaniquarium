@@ -15,6 +15,7 @@ import org.andengine.opengl.texture.atlas.bitmap.BitmapTextureAtlasTextureRegion
 import org.andengine.opengl.texture.region.TiledTextureRegion;
 import org.andengine.ui.activity.SimpleBaseGameActivity;
 
+import com.hao.insaniquarium.factory.ResourceFishFactory;
 import com.makersf.andengine.extension.collisions.entity.sprite.PixelPerfectAnimatedSprite;
 import com.makersf.andengine.extension.collisions.opengl.texture.region.PixelPerfectTextureRegionFactory;
 import com.makersf.andengine.extension.collisions.opengl.texture.region.PixelPerfectTiledTextureRegion;
@@ -32,44 +33,16 @@ import android.widget.Toast;
  * @since 12:14:22 - 30.06.2010
  */
 public class Main extends SimpleBaseGameActivity {
-	// ===========================================================
-	// Constants
-	// ===========================================================
 
 	private static final int CAMERA_WIDTH = 480;
 	private static final int CAMERA_HEIGHT = 320;
 
-	// ===========================================================
-	// Fields
-	// ===========================================================
 
-	private BitmapTextureAtlas mBitmapTextureAtlas;
-	private TiledTextureRegion mFaceTextureRegion;
-
-	private boolean mToggleBox = true;
-	private AnimatedSprite animatedSprite;
-	private TiledTextureRegion mFaceTextureRegion1;
-	private AnimatedSprite animatedSprite1;
 	private Scene scene;
-	private PixelPerfectTiledTextureRegion mFaceTextureRegion2;
-	private PixelPerfectAnimatedSprite animatedSprite2;
-
-	// ===========================================================
-	// Constructors
-	// ===========================================================
-
-	// ===========================================================
-	// Getter & Setter
-	// ===========================================================
-
-	// ===========================================================
-	// Methods for/from SuperClass/Interfaces
-	// ===========================================================
-
+	private ResourceFishFactory rsFac;
+	
 	@Override
 	public EngineOptions onCreateEngineOptions() {
-		Toast.makeText(this, "Touch the screen to update (redraw) an existing BitmapTextureAtlas with every touch!", Toast.LENGTH_LONG)
-				.show();
 		final Display display = getWindowManager().getDefaultDisplay();
 		Point screenSize = new Point();
 		display.getSize(screenSize);
@@ -80,69 +53,27 @@ public class Main extends SimpleBaseGameActivity {
 
 	@Override
 	public void onCreateResources() {
-		BitmapTextureAtlasTextureRegionFactory.setAssetBasePath("gfx/");
-		PixelPerfectTextureRegionFactory.setAssetBasePath("gfx/");
-		
-		this.mBitmapTextureAtlas = new BitmapTextureAtlas(this.getTextureManager(), 480, 800, TextureOptions.BILINEAR);
-		this.mFaceTextureRegion = BitmapTextureAtlasTextureRegionFactory.createTiledFromAsset(this.mBitmapTextureAtlas, this,
-				"face_box_tiled.png", 0, 0, 2, 1);
-		this.mFaceTextureRegion1 = BitmapTextureAtlasTextureRegionFactory.createTiledFromAsset(this.mBitmapTextureAtlas, this,
-				"banana_tiled.png", 0, 100, 4, 2);
-//		this.mFaceTextureRegion2 = BitmapTextureAtlasTextureRegionFactory.createTiledFromAsset(this.mBitmapTextureAtlas, this, "coin_gold.png", 0, 200, 10, 1);
-		this.mFaceTextureRegion2 = PixelPerfectTextureRegionFactory.createTiledFromAsset(this.mBitmapTextureAtlas, this.getAssets(), "coin_gold.png", 0, 200, 10, 1, 0);
-		this.mBitmapTextureAtlas.load();
+		rsFac = new ResourceFishFactory(this);
+		rsFac.guppy();
 	}
 
 	@Override
 	public Scene onCreateScene() {
 		this.mEngine.registerUpdateHandler(new FPSLogger());
 
+
 		scene = new Scene();
 		scene.getBackground().setColor(0.09804f, 0.6274f, 0.8784f);
-
-		final float centerX = CAMERA_WIDTH / 2;
-		final float centerY = CAMERA_HEIGHT / 2;
-
-		/* Create the animated sprite and add it to the scene. */
-		animatedSprite = new AnimatedSprite(centerX, centerY, this.mFaceTextureRegion, this.getVertexBufferObjectManager());
-//		animatedSprite1 = new AnimatedSprite(centerX, centerY, this.mFaceTextureRegion1, this.getVertexBufferObjectManager());
-//		animatedSprite2 = new AnimatedSprite(150, 200, this.mFaceTextureRegion2, this.getVertexBufferObjectManager());
-		animatedSprite1 = new PixelPerfectAnimatedSprite(centerX, centerY, this.mFaceTextureRegion2, this.getVertexBufferObjectManager());
-		animatedSprite2 = new PixelPerfectAnimatedSprite(150, 200, this.mFaceTextureRegion2, this.getVertexBufferObjectManager());
-		animatedSprite2.animate(100);
-		animatedSprite2.setPosition(100, 50);
-		animatedSprite1.animate(100);
-		scene.attachChild(animatedSprite1);
-		scene.attachChild(animatedSprite2);
-		scene.setOnSceneTouchListener(new IOnSceneTouchListener() {
-			@Override
-			public boolean onSceneTouchEvent(final Scene pScene, final TouchEvent pSceneTouchEvent) {
-				if (pSceneTouchEvent.isActionDown()) {
-					animatedSprite2.setPosition(pSceneTouchEvent.getX(), pSceneTouchEvent.getY());
-					Main.this.toggle();
-				}
-				return true;
-			}
-		});
-
+		
+		AnimatedSprite ani1 = new AnimatedSprite(50, 100,rsFac.getTiledTextureRegion(ResourceFishFactory.FISH_GUPPY_SMALL_DIE) , this.getVertexBufferObjectManager());
+		ani1.animate(100);
+		
+		AnimatedSprite ani2 = new AnimatedSprite(100, 100,rsFac.getTiledTextureRegion(ResourceFishFactory.FISH_GUPPY_SMALL_EAT) , this.getVertexBufferObjectManager());
+		ani2.animate(100);
+		
+		scene.attachChild(ani1);
+		scene.attachChild(ani2);
 		return scene;
-	}
-
-	private void toggle() {
-		boolean col = false;
-		this.mToggleBox = !this.mToggleBox;
-		if (mToggleBox) {
-			animatedSprite2.setTiledTextureRegion(mFaceTextureRegion2);
-			animatedSprite2.animate(100);
-			col = animatedSprite2.collidesWith(animatedSprite1);
-		} else {
-			animatedSprite2.setTiledTextureRegion(mFaceTextureRegion1);
-			animatedSprite2.animate(100);
-			col = animatedSprite2.collidesWith(animatedSprite1);
-		}
-		if (col) {
-			Log.e("hao", "cham roi ne " + SystemClock.elapsedRealtime());
-		}
 	}
 
 }
